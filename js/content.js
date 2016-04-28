@@ -7,16 +7,16 @@ require(['QueryCrumbs/querycrumbs-settings', 'QueryCrumbs/querycrumbs', 'jquery'
     function navigateToQuery(query) {
         var searchquery = "";
         var comparequery = "";
-        comparequery = searchquery;
         for (var i = 0; i < query.profile.contextKeywords.length; i++) {
+            comparequery += encodeURIComponent(query.profile.contextKeywords[i].text) + ' ';
             searchquery += encodeURIComponent(query.profile.contextKeywords[i].text) + '+';
         }
 
         var tabUrl = encodeURIComponent(window.location.host);
         var tabquery = '#q=' + searchquery;
-        console.log(previousquerytext);
-        console.log(comparequery);
-        console.log(searchquery);
+        //console.log(previousquerytext);
+        //console.log(comparequery);
+        //console.log(searchquery);
 
 
         if (comparequery != previousquerytext) {
