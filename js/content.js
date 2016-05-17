@@ -6,6 +6,9 @@ require(['QueryCrumbs/querycrumbs-settings', 'QueryCrumbs/querycrumbs', 'jquery'
 
     var prevent = false;
 
+
+
+
     //clickevent for crumb to switch back to previous searchresult
     function navigateToQuery(query) {
         prevent = true;
@@ -14,26 +17,17 @@ require(['QueryCrumbs/querycrumbs-settings', 'QueryCrumbs/querycrumbs', 'jquery'
         $('input.gsfi').blur();
         window.setTimeout(function() {
             $('button.lsb').click();
-        }, 200);
-        $('button.lsb').click();
-//        var searchquery = "";
-//        var comparequery = "";
-//        for (var i = 0; i < query.profile.contextKeywords.length; i++) {
-//            comparequery += encodeURIComponent(query.profile.contextKeywords[i].text) + ' ';
-//            searchquery += encodeURIComponent(query.profile.contextKeywords[i].text) + '+';
-//        }
-//
-//        var tabUrl = encodeURIComponent(window.location.host);
-//        var tabquery = '#q=' + searchquery;
-//        //console.log(previousquerytext);
-//        //console.log(comparequery);
-//        //console.log(searchquery);
-//
-//
-//        if (comparequery != previousquerytext) {
-//            chrome.extension.sendRequest('https://' + tabUrl + tabquery);    
-//        }
+            $('input.gsfi').attr("placeholder", "");
+        }, 5);
 
+        //remove placeholder
+        /*       $('input.gsfi').focus(function() {
+                   console.log("remove placeholder");
+                   $(this).attr("placeholder", "");
+               });*/
+
+
+        $('button.lsb').click();
     }
 
     //add html container to google    
@@ -41,7 +35,28 @@ require(['QueryCrumbs/querycrumbs-settings', 'QueryCrumbs/querycrumbs', 'jquery'
 
     //add querycrumbs to html
     function addQueryCrumbDiv() {
-        $("#center_col").css('margin-top', '75px');
+        //splash page google
+
+        if ($('#hdtb-msb').length == 0) {
+            $('#querycrumbs').show();
+            $('#querycrumbs').center();
+        } else if ($('#hdtb-msb').children().first().hasClass('hdtb-msel')) {
+            $('#querycrumbs').show();
+            $("#center_col").css('margin-top', '75px');
+            $('#querycrumbs').css('left', 130);
+        } else {
+            $('#querycrumbs').hide();
+        }
+
+    }
+
+    jQuery.fn.center = function() {
+        this.css("position", "absolute");
+        //this.css("top", Math.max(0, (($(window).height() - $(this).outerHeight()) / 2) + 
+        //                                            $(window).scrollTop()) + "px");
+        this.css("left", Math.max(0, (($(window).width() - $(this).outerWidth()) / 2) +
+            $(window).scrollLeft()) + "px");
+        return this;
     }
 
     //wait for domelements loaded trigger style change on google result
@@ -50,24 +65,19 @@ require(['QueryCrumbs/querycrumbs-settings', 'QueryCrumbs/querycrumbs', 'jquery'
     //init querycrumbs
     qc.init($('#querycrumbs').get(0), navigateToQuery);
 
-    //receive search requests
-//    chrome.extension.onMessage.addListener(function(msg, sender, sendResponse) {
-//        if (msg.action == 'searchComplete') {
-//            setTimeout(function() { addQueryCrumb(); }, 800);
-//        }
-//    });
 
 
+    //TODO use eventhandler from background.js !
     function hashHandler() {
-        console.log('test');
+        //console.log('test');
         this.oldHash = window.location.hash;
         this.Check;
 
         var that = this;
         var detect = function() {
             if (that.oldHash != window.location.hash) {
-                console.log(prevent);
-                console.log("HASH CHANGED - new has" + window.location.hash);
+                //console.log(prevent);
+                //console.log("HASH CHANGED - new has" + window.location.hash);
                 if (!prevent) {
                     setTimeout(function() {
                         addQueryCrumb();
@@ -114,30 +124,32 @@ require(['QueryCrumbs/querycrumbs-settings', 'QueryCrumbs/querycrumbs', 'jquery'
 
     //addquerycrumb
     function addQueryCrumb(crumb) {
-        console.log('bof');
+        //console.log('bof');
+        var querytext = '';
         if (window.location.href.indexOf('#q=') !== -1) {
-            console.log('no');
-            var querytext = window.location.href.slice(window.location.href.indexOf('#q=') + 3);
+            querytext = window.location.href.slice(window.location.href.indexOf('#q=') + 3);
         } else {
-            var querytext = $.urlParam('q');
+            querytext = $.urlParam('q');
         }
-        console.log(querytext);
-        querytext = decodeURIComponent(querytext);
-        querytext = querytext.replace(/\+/g, ' ');
 
+        if (querytext !== null) {
+            querytext = decodeURIComponent(querytext);
+            querytext = querytext.replace(/\+/g, ' ');
 
+            getLinks(function(links) {
+                data = {
+                    query: querytext,
+                    results: links
+                };
 
+                console.log(qc.getLastCrumb());
+                console.log(querytext);
+                if (qc.getLastCrumb() !== querytext) {
+                    qc.addNewQuery(data);
+                }
 
-        getLinks(function(links) {
-            data = {
-                query: querytext,
-                results: links
-            };
-
-            console.log(data);
-            qc.addNewQuery(data);
-        });
-//        }
+            });
+        }
     }
 
     // Returns array with the 10 first links delivered by google
@@ -174,9 +186,9 @@ require(['QueryCrumbs/querycrumbs-settings', 'QueryCrumbs/querycrumbs', 'jquery'
         return Math.round(+new Date() / 1000);
     }
 
-
-
     $('#main').ready(function() {
         addQueryCrumb();
+
+
     });
 });
