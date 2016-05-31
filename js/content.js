@@ -18,6 +18,8 @@ require(['QueryCrumbs/querycrumbs-settings', 'QueryCrumbs/querycrumbs', 'jquery'
         window.setTimeout(function() {
             $('button.lsb').click();
             $('input.gsfi').attr("placeholder", "");
+            $('input.gsfi').css("background", "none");
+            $('#gs_taif0').val('');
         }, 5);
 
         //remove placeholder
@@ -31,7 +33,7 @@ require(['QueryCrumbs/querycrumbs-settings', 'QueryCrumbs/querycrumbs', 'jquery'
     }
 
     //add html container to google    
-    $("#searchform").append("<div id='querycrumbs' style='position:absolute; left: 130px; top: 140px; height:40px;padding:15px 0 15px 0;'></div>");
+    $("#searchform").append("<div id='querycrumbs' style='position:absolute; left: 130px; top: 140px; height:40px;padding:10px 0 10px 0;'></div>");
 
     //add querycrumbs to html
     function addQueryCrumbDiv() {
@@ -65,40 +67,54 @@ require(['QueryCrumbs/querycrumbs-settings', 'QueryCrumbs/querycrumbs', 'jquery'
     //init querycrumbs
     qc.init($('#querycrumbs').get(0), navigateToQuery);
 
+    var oldHash;
 
-
-    //TODO use eventhandler from background.js !
     function hashHandler() {
-        //console.log('test');
-        this.oldHash = window.location.hash;
-        this.Check;
-
-        var that = this;
-        var detect = function() {
-            if (that.oldHash != window.location.hash) {
-                //console.log(prevent);
-                //console.log("HASH CHANGED - new has" + window.location.hash);
-                if (!prevent) {
-                    setTimeout(function() {
-                        addQueryCrumb();
-                    }, 800);
-                } else {
-                    prevent = false;
-                }
-                that.oldHash = window.location.hash;
+        if (oldHash != window.location.hash) {
+            if (!prevent) {
+                setTimeout(function() {
+                    addQueryCrumb();
+                }, 600);
+            } else {
+                prevent = false;
             }
-        };
-        this.Check = setInterval(function() {
-            detect()
-        }, 100);
-    }
 
-    hashHandler();
+            oldHash = window.location.hash;
+        }
+    }
+    //TODO use eventhandler from background.js !
+    // function hashHandler() {
+    //     //console.log('test');
+    //     this.oldHash = window.location.hash;
+    //     this.Check;
+
+    //     var that = this;
+    //     var detect = function() {
+    //         if (that.oldHash != window.location.hash) {
+    //             //console.log(prevent);
+    //             //console.log("HASH CHANGED - new has" + window.location.hash);
+    //             if (!prevent) {
+    //                 setTimeout(function() {
+    //                     addQueryCrumb();
+    //                 }, 400);
+    //             } else {
+    //                 prevent = false;
+    //             }
+    //             that.oldHash = window.location.hash;
+    //         }
+    //     };
+    //     this.Check = setInterval(function() {
+    //         detect()
+    //     }, 100);
+    // }
+
+
 
 
     //get url parameter
     $.urlParam = function(name) {
         var results = new RegExp('[\#&?]' + name + '=([^&#]*)').exec(window.location.href);
+        console.log(results);
         if (results == null) {
             return null;
         } else {
@@ -127,7 +143,12 @@ require(['QueryCrumbs/querycrumbs-settings', 'QueryCrumbs/querycrumbs', 'jquery'
         //console.log('bof');
         var querytext = '';
         if (window.location.href.indexOf('#q=') !== -1) {
-            querytext = window.location.href.slice(window.location.href.indexOf('#q=') + 3);
+            // querytext = window.location.href.slice(window.location.href.indexOf('#q=') + 3);
+
+            var results = new RegExp('[\#]q=([^&#]*)').exec(window.location.href);
+
+            if (results != null) querytext = results[1].replace(/\+/g, ' ') || 0;
+
         } else {
             querytext = $.urlParam('q');
         }
@@ -142,8 +163,8 @@ require(['QueryCrumbs/querycrumbs-settings', 'QueryCrumbs/querycrumbs', 'jquery'
                     results: links
                 };
 
-                console.log(qc.getLastCrumb());
-                console.log(querytext);
+                // console.log(qc.getLastCrumb());
+                // console.log(querytext);
                 if (qc.getLastCrumb() !== querytext) {
                     qc.addNewQuery(data);
                 }
@@ -152,43 +173,48 @@ require(['QueryCrumbs/querycrumbs-settings', 'QueryCrumbs/querycrumbs', 'jquery'
         }
     }
 
+    function throttle(fn, time) {
+        var t = 0;
+        return function() {
+            var args = arguments,
+                ctx = this;
+
+            clearTimeout(t);
+
+            t = setTimeout(function() {
+                fn.apply(ctx, args);
+            }, time);
+        };
+    }
+
+
+
+    $("#main").bind("DOMSubtreeModified", throttle(function() {
+        console.log('trigger hashhandler');
+        hashHandler();
+    }, 850));
+
+
     // Returns array with the 10 first links delivered by google
     function getLinks(callback) {
         var links = [];
-        $('#main').ready(function() {
+        $(document).ready(function() {
             $('#main').find('.rc ').each(function() {
                 var link = {
                     /*title: $(this).find('.r a').text(),
                      description: $(this).find('.st').text(),*/
                     uri: $(this).find('.r a').attr('href')
                 };
+                console.log(link.uri);
                 links.push(link);
             });
             callback(links);
         });
     }
 
-    function addResults(links) {
-        var results = [];
-        // console.log("results:");
-        for (var i = links.length - 1; i >= 0; i--) {
-            var result = {
-                "documentBadge": {
-                    "uri": links[i].uri
-                }
-            };
-            results.push(result);
-        }
-        return results;
-    }
-
-    function guid() {
-        return Math.round(+new Date() / 1000);
-    }
 
     $('#main').ready(function() {
         addQueryCrumb();
-
-
     });
+
 });
