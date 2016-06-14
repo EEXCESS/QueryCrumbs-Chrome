@@ -160,7 +160,8 @@ require(['QueryCrumbs/querycrumbs-settings', 'QueryCrumbs/querycrumbs', 'jquery'
             getLinks(function(links) {
                 data = {
                     query: querytext,
-                    results: links
+                    results: links,
+                    children: []
                 };
 
                 // console.log(qc.getLastCrumb());
