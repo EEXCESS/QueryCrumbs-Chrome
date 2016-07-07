@@ -22,13 +22,6 @@ require(['QueryCrumbs/querycrumbs-settings', 'QueryCrumbs/querycrumbs', 'jquery'
             $('#gs_taif0').val('');
         }, 5);
 
-        //remove placeholder
-        /*       $('input.gsfi').focus(function() {
-                   console.log("remove placeholder");
-                   $(this).attr("placeholder", "");
-               });*/
-
-
         $('button.lsb').click();
     }
 
@@ -44,7 +37,7 @@ require(['QueryCrumbs/querycrumbs-settings', 'QueryCrumbs/querycrumbs', 'jquery'
             $('#querycrumbs').center();
         } else if ($('#hdtb-msb').children().first().hasClass('hdtb-msel')) {
             $('#querycrumbs').show();
-            $("#center_col").css('margin-top', '75px');
+            $("#center_col").css('margin-top', '105px');
             $('#querycrumbs').css('left', 130);
         } else {
             $('#querycrumbs').hide();
@@ -82,39 +75,11 @@ require(['QueryCrumbs/querycrumbs-settings', 'QueryCrumbs/querycrumbs', 'jquery'
             oldHash = window.location.hash;
         }
     }
-    //TODO use eventhandler from background.js !
-    // function hashHandler() {
-    //     //console.log('test');
-    //     this.oldHash = window.location.hash;
-    //     this.Check;
-
-    //     var that = this;
-    //     var detect = function() {
-    //         if (that.oldHash != window.location.hash) {
-    //             //console.log(prevent);
-    //             //console.log("HASH CHANGED - new has" + window.location.hash);
-    //             if (!prevent) {
-    //                 setTimeout(function() {
-    //                     addQueryCrumb();
-    //                 }, 400);
-    //             } else {
-    //                 prevent = false;
-    //             }
-    //             that.oldHash = window.location.hash;
-    //         }
-    //     };
-    //     this.Check = setInterval(function() {
-    //         detect()
-    //     }, 100);
-    // }
-
-
-
-
+  
     //get url parameter
     $.urlParam = function(name) {
         var results = new RegExp('[\#&?]' + name + '=([^&#]*)').exec(window.location.href);
-        console.log(results);
+        // console.log(results);
         if (results == null) {
             return null;
         } else {
@@ -139,8 +104,7 @@ require(['QueryCrumbs/querycrumbs-settings', 'QueryCrumbs/querycrumbs', 'jquery'
     }
 
     //addquerycrumb
-    function addQueryCrumb(crumb) {
-        //console.log('bof');
+    function addQueryCrumb(crumb) {            
         var querytext = '';
         if (window.location.href.indexOf('#q=') !== -1) {
             // querytext = window.location.href.slice(window.location.href.indexOf('#q=') + 3);
@@ -161,7 +125,8 @@ require(['QueryCrumbs/querycrumbs-settings', 'QueryCrumbs/querycrumbs', 'jquery'
                 data = {
                     query: querytext,
                     results: links,
-                    children: []
+                    children: [],
+                    isChild: false
                 };
 
                 // console.log(qc.getLastCrumb());
@@ -191,7 +156,7 @@ require(['QueryCrumbs/querycrumbs-settings', 'QueryCrumbs/querycrumbs', 'jquery'
 
 
     $("#main").bind("DOMSubtreeModified", throttle(function() {
-        console.log('trigger hashhandler');
+        // console.log('trigger hashhandler');
         hashHandler();
     }, 850));
 
@@ -206,7 +171,7 @@ require(['QueryCrumbs/querycrumbs-settings', 'QueryCrumbs/querycrumbs', 'jquery'
                      description: $(this).find('.st').text(),*/
                     uri: $(this).find('.r a').attr('href')
                 };
-                console.log(link.uri);
+                // console.log(link.uri);
                 links.push(link);
             });
             callback(links);
