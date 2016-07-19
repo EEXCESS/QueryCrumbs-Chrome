@@ -12,7 +12,7 @@
             "*://*.google.*/*"
         ],
         "run_at": "document_idle",
-        "js": ["js/lib/requirejs/require.js", "js/requireContent.js", "js/common.js", "js/content.js"]
+        "js": ["js/lib/requirejs/require.js", "js/requireContent.js", "js/common.js", "js/content.js", "js/setup.js", "js/background.js"]
         
     }],
 
@@ -34,7 +34,8 @@
     "icons": {
         "16": "media/icons/16.png",
         "48": "media/icons/48.png",
-        "128": "media/icons/128.png"
+        "128": "media/icons/128.png",
+        "32": "media/icons/eexcess.png"
     },
 
     "browser_action": {

@@ -2,13 +2,7 @@ require(['QueryCrumbs/querycrumbs-settings', 'QueryCrumbs/querycrumbs', 'jquery'
 
     // save last result
     var previousquerytext = "";
-
-
     var prevent = false;
-
-
-
-
     //clickevent for crumb to switch back to previous searchresult
     function navigateToQuery(query) {
         prevent = true;
@@ -25,32 +19,35 @@ require(['QueryCrumbs/querycrumbs-settings', 'QueryCrumbs/querycrumbs', 'jquery'
         $('button.lsb').click();
     }
 
-    //add html container to google    
+    //add querycrumb to html 
     $("#searchform").append("<div id='querycrumbs' style='position:absolute; left: 130px; top: 140px; height:40px;padding:10px 0 10px 0;'></div>");
 
-    //add querycrumbs to html
+    //Positions and visibility on different statements
     function addQueryCrumbDiv() {
         //splash page google
-
+        // console.log("event: addQueryCrumbDiv");
         if ($('#hdtb-msb').length == 0) {
             $('#querycrumbs').show();
             $('#querycrumbs').center();
         } else if ($('#hdtb-msb').children().first().hasClass('hdtb-msel')) {
             $('#querycrumbs').show();
-            $("#center_col").css('margin-top', '105px');
+            $("#center_col").css('margin-top', '85px');
             $('#querycrumbs').css('left', 130);
         } else {
             $('#querycrumbs').hide();
         }
-
+        //Fix Position if appbar contains programm information etc
+        if ($('.appbar').height() > 150) {
+            $('#querycrumbs').css('top', $('.appbar').height() + 120 + 'px');
+        } else {
+            $('#querycrumbs').css('top', '140px');
+        }
     }
 
+    //function to center the crumbs on the splash page
     jQuery.fn.center = function() {
         this.css("position", "absolute");
-        //this.css("top", Math.max(0, (($(window).height() - $(this).outerHeight()) / 2) + 
-        //                                            $(window).scrollTop()) + "px");
-        this.css("left", Math.max(0, (($(window).width() - $(this).outerWidth()) / 2) +
-            $(window).scrollLeft()) + "px");
+        this.css("left", Math.max(0, (($(window).width() - $(this).outerWidth()) / 2) + $(window).scrollLeft()) + "px");
         return this;
     }
 
@@ -60,8 +57,22 @@ require(['QueryCrumbs/querycrumbs-settings', 'QueryCrumbs/querycrumbs', 'jquery'
     //init querycrumbs
     qc.init($('#querycrumbs').get(0), navigateToQuery);
 
-    var oldHash;
+    //add button to call current search on eexcess
+    function addEexcessButton() {
 
+        var imageurl = chrome.extension.getURL("/media/icons/eexcess.png");
+        var button = '<a href="" id="eexcesslink"><img src="' + imageurl + '" alt="eexcess" width="28" height="28" style="margin-bottom:3px"></a>';
+        $('#querycrumbs').prepend(button);
+        updateEexcessLink();
+    }
+
+    //update the query
+    function updateEexcessLink() {
+        var lastquery = encodeURIComponent(qc.getLastCrumb());
+        $('#eexcesslink').attr('href', "http://www.eexcess.eu?query=" + lastquery);
+    }
+
+    var oldHash;
     function hashHandler() {
         if (oldHash != window.location.hash) {
             if (!prevent) {
@@ -75,7 +86,7 @@ require(['QueryCrumbs/querycrumbs-settings', 'QueryCrumbs/querycrumbs', 'jquery'
             oldHash = window.location.hash;
         }
     }
-  
+
     //get url parameter
     $.urlParam = function(name) {
         var results = new RegExp('[\#&?]' + name + '=([^&#]*)').exec(window.location.href);
@@ -104,7 +115,7 @@ require(['QueryCrumbs/querycrumbs-settings', 'QueryCrumbs/querycrumbs', 'jquery'
     }
 
     //addquerycrumb
-    function addQueryCrumb(crumb) {            
+    function addQueryCrumb(crumb) {
         var querytext = '';
         if (window.location.href.indexOf('#q=') !== -1) {
             // querytext = window.location.href.slice(window.location.href.indexOf('#q=') + 3);
@@ -124,15 +135,15 @@ require(['QueryCrumbs/querycrumbs-settings', 'QueryCrumbs/querycrumbs', 'jquery'
             getLinks(function(links) {
                 data = {
                     query: querytext,
-                    results: links,
+                    results: links/*,
                     children: [],
-                    isChild: false
+                    isChild: false*/
                 };
 
-                // console.log(qc.getLastCrumb());
-                // console.log(querytext);
                 if (qc.getLastCrumb() !== querytext) {
                     qc.addNewQuery(data);
+                    sendLog(data);
+                    updateEexcessLink();
                 }
 
             });
@@ -153,13 +164,10 @@ require(['QueryCrumbs/querycrumbs-settings', 'QueryCrumbs/querycrumbs', 'jquery'
         };
     }
 
-
-
     $("#main").bind("DOMSubtreeModified", throttle(function() {
         // console.log('trigger hashhandler');
         hashHandler();
     }, 850));
-
 
     // Returns array with the 10 first links delivered by google
     function getLinks(callback) {
@@ -178,9 +186,16 @@ require(['QueryCrumbs/querycrumbs-settings', 'QueryCrumbs/querycrumbs', 'jquery'
         });
     }
 
-
     $('#main').ready(function() {
         addQueryCrumb();
+        addEexcessButton();
     });
+
+    //send log to background.js (eexcess api)
+    function sendLog(data) {
+        chrome.runtime.sendMessage(data, function(response) {
+            // console.log(response.success);
+        });
+    }
 
 });
